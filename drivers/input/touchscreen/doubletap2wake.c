@@ -60,8 +60,11 @@ MODULE_LICENSE("GPLv2");
 #define DT2W_PWRKEY_DUR		60
 #define DT2W_RADIUS		200
 #define DT2W_TIME		400
+#define VIB_STRENGTH	20
 
 /* Resources */
+extern void set_vibrate(int value);
+static int dt2w_vib_strength = VIB_STRENGTH;
 int dt2w_switch = DT2W_DEFAULT;
 static cputime64_t tap_time_pre = 0;
 static int touch_x = 0, touch_y = 0, touch_nr = 0, x_pre = 0, y_pre = 0;
@@ -150,6 +153,7 @@ static void detect_doubletap2wake(int x, int y)
 			if ((calc_within_range(x_pre, y_pre,x,y, DT2W_RADIUS) == true) && ((ktime_to_ms(ktime_get())-tap_time_pre) < DT2W_TIME)){
 			    	exec_count = false;
                 		doubletap2wake_pwrtrigger();  // We queue the screen on first, as it takes more time to do than vibration.
+				set_vibrate(dt2w_vib_strength);
 	    			doubletap2wake_reset();     // Here the touch number is also reset to 0, but the program executes as needed. See yourself.
             		}
 			else {          //If the second tap isn't close or fast enough, reset previous coords, treat second tap as a separate first tap
@@ -295,6 +299,35 @@ static ssize_t dt2w_doubletap2wake_dump(struct device *dev,
 static DEVICE_ATTR(doubletap2wake, (S_IWUSR|S_IRUGO),
 	dt2w_doubletap2wake_show, dt2w_doubletap2wake_dump);
 
+static ssize_t dt2w_vib_strength_show(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	size_t count = 0;
+
+	count += sprintf(buf, "%d\n", dt2w_vib_strength);
+
+	return count;
+}
+
+static ssize_t dt2w_vib_strength_dump(struct device *dev,
+		struct device_attribute *attr, const char *buf, size_t count)
+{
+	unsigned int new_dt2w_vib;
+
+	if (!sscanf(buf, "%du", &new_dt2w_vib))
+		return -EINVAL;
+
+	if (new_dt2w_vib == dt2w_vib_strength)
+		return count;
+	
+	dt2w_vib_strength = new_dt2w_vib;
+	
+	return count;
+}
+
+static DEVICE_ATTR(doubletap2wake_vibstrength, (S_IWUSR|S_IRUGO),
+	dt2w_vib_strength_show, dt2w_vib_strength_dump);
+
 static ssize_t dt2w_version_show(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
@@ -367,6 +400,11 @@ static int __init doubletap2wake_init(void)
 	rc = sysfs_create_file(android_touch_kobj, &dev_attr_doubletap2wake_version.attr);
 	if (rc) {
 		pr_warn("%s: sysfs_create_file failed for doubletap2wake_version\n", __func__);
+	}
+
+	rc = sysfs_create_file(android_touch_kobj, &dev_attr_doubletap2wake_vibstrength.attr);
+	if (rc) {
+		pr_warn("%s: sysfs_create_file failed for doubletap2wake_vibstrength\n", __func__);
 	}
 
 err_input_dev:
