@@ -1082,6 +1082,21 @@ static int get_prop_batt_capacity(struct smbchg_chip *chip)
 	return capacity;
 }
 
+static int get_prop_battery_charge_full_design(struct smbchg_chip *chip)
+{
+	union power_supply_propval ret = {0,};
+
+		if (chip->bms_psy) {
+			chip->bms_psy->get_property(chip->bms_psy,
+				  POWER_SUPPLY_PROP_CHARGE_FULL_DESIGN, &ret);
+			return ret.intval;
+		} else {
+			pr_debug("No BMS supply registered return 0\n");
+	}
+
+		return 0;
+}
+
 #define DEFAULT_BATT_TEMP		200
 static int get_prop_batt_temp(struct smbchg_chip *chip)
 {
@@ -4107,7 +4122,7 @@ struct regulator_ops smbchg_otg_reg_ops = {
 #define ADAPTER_ALLOWANCE_MASK		0x7
 #define USBIN_ADAPTER_9V		0x3
 #define USBIN_ADAPTER_5V_9V_CONT	0x2
-#define USBIN_ADAPTER_5V_UNREGULATED_9V	0x6
+#define USBIN_ADAPTER_5V_UNREGULATED_9V	0x5
 static int smbchg_external_otg_regulator_enable(struct regulator_dev *rdev)
 {
 	int rc = 0;
@@ -6234,6 +6249,7 @@ static enum power_supply_property smbchg_battery_properties[] = {
 	POWER_SUPPLY_PROP_CHARGING_ENABLED,
 	POWER_SUPPLY_PROP_CHARGE_TYPE,
 	POWER_SUPPLY_PROP_CAPACITY,
+	POWER_SUPPLY_PROP_CHARGE_FULL_DESIGN,
 	POWER_SUPPLY_PROP_HEALTH,
 	POWER_SUPPLY_PROP_TECHNOLOGY,
 	POWER_SUPPLY_PROP_SYSTEM_TEMP_LEVEL,
@@ -6438,6 +6454,9 @@ static int smbchg_battery_get_property(struct power_supply *psy,
 	/* properties from fg */
 	case POWER_SUPPLY_PROP_CAPACITY:
 		val->intval = get_prop_batt_capacity(chip);
+		break;
+	case POWER_SUPPLY_PROP_CHARGE_FULL_DESIGN:
+		val->intval = get_prop_battery_charge_full_design(chip);
 		break;
 	case POWER_SUPPLY_PROP_CURRENT_NOW:
 		val->intval = get_prop_batt_current_now(chip);
