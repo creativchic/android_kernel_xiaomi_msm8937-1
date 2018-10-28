@@ -321,6 +321,7 @@ static ssize_t comp_algorithm_show(struct device *dev,
 static ssize_t comp_algorithm_store(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t len)
 {
+#if 0  
 	struct zram *zram = dev_to_zram(dev);
 	down_write(&zram->init_lock);
 	if (init_done(zram)) {
@@ -330,6 +331,7 @@ static ssize_t comp_algorithm_store(struct device *dev,
 	}
 	strlcpy(zram->compressor, buf, sizeof(zram->compressor));
 	up_write(&zram->init_lock);
+#endif
 	return len;
 }
 
