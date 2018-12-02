@@ -77,9 +77,12 @@ MODULE_LICENSE("GPLv2");
 #define S2W_X_B1				200
 #define S2W_X_B2				400
 #define S2W_X_FINAL				180
+#define VIB_STRENGTH                            40
 #endif
 
 /* Resources */
+extern void set_vibrate(int value);
+static int dt2w_vib_strength = VIB_STRENGTH;
 int s2w_switch = 0;
 static int s2w_debug = 0;
 static int s2w_pwrkey_dur = 30;
@@ -170,6 +173,7 @@ static void detect_sweep2wake(int x, int y)
 					if (x > (S2W_X_MAX - S2W_X_FINAL)) {
 						if (exec_count) {
 							pr_info(LOGTAG"ON\n");
+							set_vibrate(dt2w_vib_strength);
 							sweep2wake_pwrtrigger();
 							exec_count = false;
 						}
@@ -200,6 +204,7 @@ static void detect_sweep2wake(int x, int y)
 					if (x < S2W_X_FINAL) {
 						if (exec_count) {
 							pr_info(LOGTAG"OFF\n");
+							set_vibrate(dt2w_vib_strength);
 							sweep2wake_pwrtrigger();
 							exec_count = false;
 						}
@@ -387,6 +392,29 @@ static ssize_t s2w_pwrkey_dur_dump(struct device *dev,
 static DEVICE_ATTR(sweep2wake_pwrkey_dur, (S_IWUSR|S_IRUGO),
 	s2w_pwrkey_dur_show, s2w_pwrkey_dur_dump);
 
+static ssize_t dt2w_vib_strength_show(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	size_t count = 0;
+ 	count += sprintf(buf, "%d\n", dt2w_vib_strength);
+ 	return count;
+}
+ static ssize_t dt2w_vib_strength_dump(struct device *dev,
+		struct device_attribute *attr, const char *buf, size_t count)
+{
+	unsigned int new_dt2w_vib;
+ 	if (!sscanf(buf, "%du", &new_dt2w_vib))
+		return -EINVAL;
+ 	if (new_dt2w_vib == dt2w_vib_strength)
+		return count;
+	
+	dt2w_vib_strength = new_dt2w_vib;
+	
+	return count;
+}
+static DEVICE_ATTR(doubletap2wake_vibstrength, (S_IWUSR|S_IRUGO),
+	dt2w_vib_strength_show, dt2w_vib_strength_dump);
+	
 static ssize_t s2w_version_show(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
@@ -460,6 +488,10 @@ static int __init sweep2wake_init(void)
 	rc = sysfs_create_file(android_touch_kobj, &dev_attr_sweep2wake_version.attr);
 	if (rc) {
 		pr_warn("%s: sysfs_create_file failed for sweep2wake_version\n", __func__);
+	}
+        rc = sysfs_create_file(android_touch_kobj, &dev_attr_doubletap2wake_vibstrength.attr);
+	if (rc) {
+		pr_warn("%s: sysfs_create_file failed for doubletap2wake_vibstrength\n", __func__);
 	}
 
 err_input_dev:
