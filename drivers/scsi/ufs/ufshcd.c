@@ -8337,7 +8337,6 @@ int ufshcd_system_resume(struct ufs_hba *hba)
 {
 	int ret = 0;
 	ktime_t start = ktime_get();
-
 	if (!hba)
 		return -EINVAL;
 
@@ -8369,7 +8368,6 @@ int ufshcd_runtime_suspend(struct ufs_hba *hba)
 {
 	int ret = 0;
 	ktime_t start = ktime_get();
-
 	if (!hba)
 		return -EINVAL;
 
@@ -8412,7 +8410,6 @@ int ufshcd_runtime_resume(struct ufs_hba *hba)
 {
 	int ret = 0;
 	ktime_t start = ktime_get();
-
 	if (!hba)
 		return -EINVAL;
 
