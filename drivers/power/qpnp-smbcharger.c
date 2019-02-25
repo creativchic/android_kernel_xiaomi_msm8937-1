@@ -481,8 +481,21 @@ static int rerun_apsd(struct smbchg_chip *chip);
 static void usb_type_check_work_fn(struct smbchg_chip *chip);
 int rerun_usb_insertion = 0;
 
-#define pr_smb(reason, fmt, ...)
-#define pr_smb_rt(reason, fmt, ...)
+#define pr_smb(reason, fmt, ...)				\
+	do {							\
+		if (smbchg_debug_mask & (reason))		\
+			pr_info(fmt, ##__VA_ARGS__);		\
+		else						\
+			pr_debug(fmt, ##__VA_ARGS__);		\
+	} while (0)
+
+#define pr_smb_rt(reason, fmt, ...)					\
+	do {								\
+		if (smbchg_debug_mask & (reason))			\
+			pr_info_ratelimited(fmt, ##__VA_ARGS__);	\
+		else							\
+			pr_debug_ratelimited(fmt, ##__VA_ARGS__);	\
+	} while (0)
 
 static int smbchg_read(struct smbchg_chip *chip, u8 *val,
 			u16 addr, int count)
