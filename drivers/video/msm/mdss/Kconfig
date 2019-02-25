@@ -80,6 +80,12 @@ config FB_MSM_MDSS_KCAL_CTRL
 	  Enable sysfs for post-processing control of mdss-mdp5 display
 	  controllers in MDSS.
 
+config KLAPSE
+    bool CONFIG_KLAPSE
+    default n
+    ---help---
+    A simple rgb dynamic lapsing module similar to LineageOS' livedisplay
+
 config FB_MSM_MDSS_FRC_DEBUG
 	depends on DEBUG_FS && FB_MSM_MDSS
 	bool "Enable Video FRC debugging"
