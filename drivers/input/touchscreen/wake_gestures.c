@@ -205,7 +205,7 @@ static void detect_doubletap2wake(int x, int y, bool st)
 #endif
 	if (!is_suspended()) {
 		/* dt2s */
-		if (y > SWEEP_EDGE)
+		if (y < sweep_y_limit)
 			return;
 	} else {
 		if (x < SWEEP_EDGE || x > sweep_x_limit)
