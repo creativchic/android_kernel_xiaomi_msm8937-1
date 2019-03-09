@@ -630,7 +630,7 @@ static int ft5x06_ts_suspend(struct device *dev)
 	}
 
 #ifdef CONFIG_WAKE_GESTURES
-	if (s2w_switch || dt2w_switch) {
+	if (device_may_wakeup(dev) && (s2w_switch || dt2w_switch)) {
 		if (!ev_btn_status) {
 			for (i = 0; i < data->pdata->num_max_touches; i++) {
 				input_mt_slot(data->input_dev, i);
@@ -696,7 +696,6 @@ static int ft5x06_ts_suspend(struct device *dev)
 	}
 
 	data->suspended = true;
-	ts_suspended = true;
 
 	return 0;
 
@@ -723,7 +722,7 @@ static int ft5x06_ts_resume(struct device *dev)
 	}
 
 #ifdef CONFIG_WAKE_GESTURES
-	if (s2w_switch || dt2w_switch) {
+	if (device_may_wakeup(dev) && (s2w_switch || dt2w_switch)) {
 		if (ev_btn_status) {
 			__set_bit(BTN_TOUCH, data->input_dev->keybit);
 			input_sync(data->input_dev);
@@ -783,7 +782,6 @@ static int ft5x06_ts_resume(struct device *dev)
 
 
 	data->suspended = false;
-	ts_suspended = false;
 
 	return 0;
 }
@@ -2752,6 +2750,10 @@ static int ft5x06_ts_probe(struct i2c_client *client,
 		dev_err(&client->dev, "request irq failed\n");
 		goto free_reset_gpio;
 	}
+
+#ifdef CONFIG_WAKE_GESTURES
+	device_init_wakeup(&client->dev, 1);
+#endif
 
 	disable_irq(data->client->irq);
 
