@@ -72,7 +72,7 @@
 #define WAKE_GESTURES_ENABLED	1
 
 #define LOGTAG			"WG"
-#define IMAGIS			2
+#define ATMEL			2
 
 #if (WAKE_GESTURES_ENABLED)
 int gestures_switch = WG_DEFAULT;
@@ -111,8 +111,8 @@ static struct work_struct dt2w_input_work;
 
 static bool is_suspended(void)
 {
-	if (hw_version == IMAGIS)
-		return scr_suspended_ist();
+	if (hw_version == ATMEL)
+		return scr_suspended();
 	else
 		return scr_suspended_ft();
 }
@@ -440,6 +440,10 @@ static void dt2w_input_callback(struct work_struct *unused)
 static void wg_input_event(struct input_handle *handle, unsigned int type,
 				unsigned int code, int value)
 {
+	if (is_suspended() && code == ABS_MT_POSITION_X) {
+		value -= 5000;
+	}
+	
 #if WG_DEBUG
 	pr_info("wg: code: %s|%u, val: %i\n",
 		((code==ABS_MT_POSITION_X) ? "X" :
@@ -486,7 +490,6 @@ static int input_dev_filter(struct input_dev *dev) {
 	if (strstr(dev->name, "ft5x06_720p")) {
 		return 0;
 	} else if (strstr(dev->name, "ist30xx_ts_input")) {
-		hw_version = IMAGIS;
 		return 0;
 	} else {
 		return 1;
